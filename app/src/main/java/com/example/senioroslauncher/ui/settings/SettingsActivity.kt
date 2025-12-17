@@ -1,5 +1,7 @@
 package com.example.senioroslauncher.ui.settings
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,18 +17,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.senioroslauncher.R
 import com.example.senioroslauncher.SeniorLauncherApp
 import com.example.senioroslauncher.data.preferences.PreferencesManager
 import com.example.senioroslauncher.services.FallDetectionService
 import com.example.senioroslauncher.ui.components.LargeListItem
 import com.example.senioroslauncher.ui.components.LargeSettingsSwitch
 import com.example.senioroslauncher.ui.components.SeniorTopAppBar
+import com.example.senioroslauncher.ui.guardian.PairingActivity
 import com.example.senioroslauncher.ui.theme.*
+import com.example.senioroslauncher.util.LocaleHelper
 import kotlinx.coroutines.launch
 
 class SettingsActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        val languageCode = LocaleHelper.getLanguageCode(newBase)
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase, languageCode))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -55,13 +66,16 @@ fun SettingsScreen(onBackClick: () -> Unit) {
     val locationSharing by prefsManager.locationSharing.collectAsStateWithLifecycle(initialValue = false)
     val autoAnswerCalls by prefsManager.autoAnswerCalls.collectAsStateWithLifecycle(initialValue = false)
     val language by prefsManager.language.collectAsStateWithLifecycle(initialValue = "en")
+    val elderName by prefsManager.elderName.collectAsStateWithLifecycle(initialValue = "")
+    val elderAge by prefsManager.elderAge.collectAsStateWithLifecycle(initialValue = null)
 
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showProfileDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             SeniorTopAppBar(
-                title = "Settings",
+                title = stringResource(R.string.settings),
                 onBackClick = onBackClick
             )
         }
@@ -76,15 +90,15 @@ fun SettingsScreen(onBackClick: () -> Unit) {
         ) {
             // Accessibility Section
             Text(
-                text = "Accessibility",
+                text = stringResource(R.string.accessibility),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             LargeSettingsSwitch(
-                title = "Hearing Aid Mode",
-                description = "Optimize audio for hearing aids",
+                title = stringResource(R.string.hearing_aid_mode),
+                description = stringResource(R.string.hearing_aid_mode_desc),
                 checked = hearingAidMode,
                 onCheckedChange = {
                     scope.launch { prefsManager.setHearingAidMode(it) }
@@ -93,8 +107,8 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             )
 
             LargeSettingsSwitch(
-                title = "Voice Feedback",
-                description = "Speak actions aloud",
+                title = stringResource(R.string.voice_feedback),
+                description = stringResource(R.string.voice_feedback_desc),
                 checked = voiceFeedback,
                 onCheckedChange = {
                     scope.launch { prefsManager.setVoiceFeedback(it) }
@@ -103,8 +117,8 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             )
 
             LargeSettingsSwitch(
-                title = "Anti-Shake",
-                description = "Ignore accidental touches",
+                title = stringResource(R.string.anti_shake),
+                description = stringResource(R.string.anti_shake_desc),
                 checked = antiShake,
                 onCheckedChange = {
                     scope.launch { prefsManager.setAntiShake(it) }
@@ -113,8 +127,8 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             )
 
             LargeSettingsSwitch(
-                title = "Double-Tap to Confirm",
-                description = "Require double tap for actions",
+                title = stringResource(R.string.double_tap_confirm),
+                description = stringResource(R.string.double_tap_confirm_desc),
                 checked = doubleTapConfirm,
                 onCheckedChange = {
                     scope.launch { prefsManager.setDoubleTapConfirm(it) }
@@ -123,8 +137,8 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             )
 
             LargeSettingsSwitch(
-                title = "Touch Vibration",
-                description = "Vibrate on button press",
+                title = stringResource(R.string.touch_vibration),
+                description = stringResource(R.string.touch_vibration_desc),
                 checked = touchVibration,
                 onCheckedChange = {
                     scope.launch { prefsManager.setTouchVibration(it) }
@@ -136,15 +150,15 @@ fun SettingsScreen(onBackClick: () -> Unit) {
 
             // Safety Section
             Text(
-                text = "Safety",
+                text = stringResource(R.string.safety),
                 style = MaterialTheme.typography.titleLarge,
                 color = EmergencyRed,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             LargeSettingsSwitch(
-                title = "Fall Detection",
-                description = "Auto-detect falls and alert contacts",
+                title = stringResource(R.string.fall_detection),
+                description = stringResource(R.string.fall_detection_desc),
                 checked = fallDetection,
                 onCheckedChange = {
                     scope.launch {
@@ -164,8 +178,8 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             )
 
             LargeSettingsSwitch(
-                title = "Location Sharing",
-                description = "Share location with emergency contacts",
+                title = stringResource(R.string.location_sharing),
+                description = stringResource(R.string.location_sharing_desc),
                 checked = locationSharing,
                 onCheckedChange = {
                     scope.launch { prefsManager.setLocationSharing(it) }
@@ -177,15 +191,15 @@ fun SettingsScreen(onBackClick: () -> Unit) {
 
             // Calls Section
             Text(
-                text = "Calls",
+                text = stringResource(R.string.calls),
                 style = MaterialTheme.typography.titleLarge,
                 color = PhoneGreen,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             LargeSettingsSwitch(
-                title = "Auto-Answer Calls",
-                description = "Automatically answer incoming calls",
+                title = stringResource(R.string.auto_answer_calls),
+                description = stringResource(R.string.auto_answer_calls_desc),
                 checked = autoAnswerCalls,
                 onCheckedChange = {
                     scope.launch { prefsManager.setAutoAnswerCalls(it) }
@@ -197,14 +211,14 @@ fun SettingsScreen(onBackClick: () -> Unit) {
 
             // Language Section
             Text(
-                text = "Language",
+                text = stringResource(R.string.language),
                 style = MaterialTheme.typography.titleLarge,
                 color = PrimaryBlue,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             LargeListItem(
-                title = "App Language",
+                title = stringResource(R.string.app_language),
                 subtitle = getLanguageName(language),
                 onClick = { showLanguageDialog = true },
                 leadingIcon = Icons.Default.Language,
@@ -222,20 +236,63 @@ fun SettingsScreen(onBackClick: () -> Unit) {
 
             // Emergency Contacts Section
             Text(
-                text = "Emergency",
+                text = stringResource(R.string.emergency),
                 style = MaterialTheme.typography.titleLarge,
                 color = EmergencyRed,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             LargeListItem(
-                title = "Emergency Contacts",
-                subtitle = "Manage your emergency contacts",
+                title = stringResource(R.string.emergency_contacts),
+                subtitle = stringResource(R.string.manage_emergency_contacts),
                 onClick = {
                     context.startActivity(Intent(context, EmergencyContactsSettingsActivity::class.java))
                 },
                 leadingIcon = Icons.Default.ContactPhone,
                 leadingIconColor = EmergencyRed,
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MediumGray
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Guardian Integration Section
+            Text(
+                text = stringResource(R.string.family_guardian),
+                style = MaterialTheme.typography.titleLarge,
+                color = PrimaryBlue,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            val setNameAgeText = stringResource(R.string.set_name_age)
+            LargeListItem(
+                title = stringResource(R.string.my_profile),
+                subtitle = if (elderName.isNotEmpty()) "$elderName${elderAge?.let { ", Age $it" } ?: ""}" else setNameAgeText,
+                onClick = { showProfileDialog = true },
+                leadingIcon = Icons.Default.Person,
+                leadingIconColor = PrimaryBlue,
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MediumGray
+                    )
+                }
+            )
+
+            LargeListItem(
+                title = stringResource(R.string.pair_with_guardian),
+                subtitle = stringResource(R.string.connect_family_caregiver),
+                onClick = {
+                    context.startActivity(Intent(context, PairingActivity::class.java))
+                },
+                leadingIcon = Icons.Default.FamilyRestroom,
+                leadingIconColor = PrimaryBlue,
                 trailingContent = {
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
@@ -258,17 +315,17 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "SeniorLauncher",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "Version 1.0",
+                        text = stringResource(R.string.version),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Designed with care for seniors",
+                        text = stringResource(R.string.designed_with_care),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -290,7 +347,7 @@ fun SettingsScreen(onBackClick: () -> Unit) {
 
         AlertDialog(
             onDismissRequest = { showLanguageDialog = false },
-            title = { Text("Select Language", style = MaterialTheme.typography.headlineSmall) },
+            title = { Text(stringResource(R.string.select_language), style = MaterialTheme.typography.headlineSmall) },
             text = {
                 Column {
                     languages.forEach { (code, name) ->
@@ -306,7 +363,17 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                                     scope.launch {
                                         prefsManager.setLanguage(code)
                                     }
+                                    // Save to LocaleHelper
+                                    LocaleHelper.saveLanguageCode(context, code)
                                     showLanguageDialog = false
+                                    // Restart the app to apply language change
+                                    (context as? Activity)?.let { activity ->
+                                        val intent = activity.packageManager.getLaunchIntentForPackage(activity.packageName)
+                                        intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                        activity.startActivity(intent)
+                                        activity.finish()
+                                        Runtime.getRuntime().exit(0)
+                                    }
                                 }
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -321,7 +388,66 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showLanguageDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Profile Dialog
+    if (showProfileDialog) {
+        var nameInput by remember { mutableStateOf(elderName) }
+        var ageInput by remember { mutableStateOf(elderAge?.toString() ?: "") }
+
+        AlertDialog(
+            onDismissRequest = { showProfileDialog = false },
+            title = { Text(stringResource(R.string.my_profile), style = MaterialTheme.typography.headlineSmall) },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.profile_info_shared),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedTextField(
+                        value = nameInput,
+                        onValueChange = { nameInput = it },
+                        label = { Text(stringResource(R.string.your_name)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = ageInput,
+                        onValueChange = { input ->
+                            // Only allow numbers
+                            if (input.isEmpty() || input.all { it.isDigit() }) {
+                                ageInput = input.take(3) // Max 3 digits
+                            }
+                        },
+                        label = { Text(stringResource(R.string.your_age)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            prefsManager.setElderName(nameInput.trim())
+                            ageInput.toIntOrNull()?.let { prefsManager.setElderAge(it) }
+                        }
+                        showProfileDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showProfileDialog = false }) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

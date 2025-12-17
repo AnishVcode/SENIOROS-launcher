@@ -134,6 +134,60 @@ fun LargeAppButton(
     }
 }
 
+// Full-width app button for single column layout (1 per row)
+@Composable
+fun FullWidthAppButton(
+    icon: ImageVector,
+    label: String,
+    backgroundColor: Color,
+    iconColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val haptic = LocalHapticFeedback.current
+
+    Card(
+        modifier = modifier
+            .height(80.dp)
+            .clickable(
+                enabled = enabled,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(bounded = true, color = iconColor)
+            ) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick()
+            },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier.size(48.dp),
+                tint = iconColor
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp),
+                color = VeryDarkGray,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
 // Large primary action button
 @Composable
 fun LargeActionButton(

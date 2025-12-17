@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -17,6 +18,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Guardian Integration Server Configuration
+        buildConfigField("String", "GUARDIAN_SERVER_IP", "\"192.168.137.150\"")
+        buildConfigField("int", "GUARDIAN_SERVER_PORT", "3000")
     }
 
     buildTypes {
@@ -37,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     configurations.all {
         resolutionStrategy {
@@ -102,6 +108,11 @@ dependencies {
 
     // WorkManager
     implementation(libs.work.runtime.ktx)
+    // OkHttp for WebSocket
+    implementation(libs.okhttp)
+
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -18,6 +18,7 @@ import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 import com.example.senioroslauncher.R
 import com.example.senioroslauncher.SeniorLauncherApp
+import com.example.senioroslauncher.data.guardian.AlertManager
 import com.example.senioroslauncher.ui.emergency.EmergencyActivity
 import kotlin.math.sqrt
 
@@ -129,6 +130,9 @@ class FallDetectionService : Service(), SensorEventListener {
 
         // Show notification
         showFallNotification()
+
+        // Trigger Guardian alert
+        AlertManager.triggerFallAlert(this)
 
         // Launch emergency activity
         val intent = Intent(this, EmergencyActivity::class.java).apply {

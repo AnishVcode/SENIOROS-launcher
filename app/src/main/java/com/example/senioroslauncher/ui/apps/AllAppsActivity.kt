@@ -3,6 +3,10 @@ package com.example.senioroslauncher.ui.apps
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import com.example.senioroslauncher.ui.components.SeniorTopAppBar
 import com.example.senioroslauncher.ui.theme.*
 
@@ -102,16 +105,15 @@ fun AllAppsScreen(onBackClick: () -> Unit) {
                 textStyle = MaterialTheme.typography.bodyLarge
             )
 
-            // Apps Grid
+            // Apps List - 1 per row
             LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
+                columns = GridCells.Fixed(1),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredApps, key = { it.packageName }) { app ->
-                    AppGridItem(
+                    FullWidthAppItem(
                         app = app,
                         onClick = {
                             launchApp(context, app.packageName)
@@ -135,9 +137,9 @@ private fun AppGridItem(
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App Icon
+        // App Icon - safely convert drawable to bitmap
         val bitmap = remember(app.icon) {
-            app.icon.toBitmap(96, 96).asImageBitmap()
+            drawableToBitmap(app.icon, 96).asImageBitmap()
         }
         Image(
             bitmap = bitmap,
@@ -157,6 +159,65 @@ private fun AppGridItem(
             overflow = TextOverflow.Ellipsis
         )
     }
+}
+
+@Composable
+private fun FullWidthAppItem(
+    app: AppInfo,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // App Icon - safely convert drawable to bitmap
+            val bitmap = remember(app.icon) {
+                drawableToBitmap(app.icon, 128).asImageBitmap()
+            }
+            Image(
+                bitmap = bitmap,
+                contentDescription = app.name,
+                modifier = Modifier.size(52.dp)
+            )
+
+            Spacer(modifier = Modifier.width(20.dp))
+
+            // App Name
+            Text(
+                text = app.name,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+private fun drawableToBitmap(drawable: Drawable, size: Int): Bitmap {
+    if (drawable is BitmapDrawable && drawable.bitmap != null) {
+        return Bitmap.createScaledBitmap(drawable.bitmap, size, size, true)
+    }
+
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+
+    return bitmap
 }
 
 private fun loadInstalledApps(context: Context): List<AppInfo> {

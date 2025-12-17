@@ -30,6 +30,9 @@ class PreferencesManager(private val context: Context) {
         val HOME_ADDRESS = stringPreferencesKey("home_address")
         val DOCTOR_ADDRESS = stringPreferencesKey("doctor_address")
         val PHARMACY_ADDRESS = stringPreferencesKey("pharmacy_address")
+        // Guardian Integration - Elder Profile
+        val ELDER_NAME = stringPreferencesKey("elder_name")
+        val ELDER_AGE = intPreferencesKey("elder_age")
     }
 
     // Settings Flows
@@ -50,6 +53,9 @@ class PreferencesManager(private val context: Context) {
     val homeAddress: Flow<String> = context.dataStore.data.map { it[Keys.HOME_ADDRESS] ?: "" }
     val doctorAddress: Flow<String> = context.dataStore.data.map { it[Keys.DOCTOR_ADDRESS] ?: "" }
     val pharmacyAddress: Flow<String> = context.dataStore.data.map { it[Keys.PHARMACY_ADDRESS] ?: "" }
+    // Guardian Integration - Elder Profile
+    val elderName: Flow<String> = context.dataStore.data.map { it[Keys.ELDER_NAME] ?: "" }
+    val elderAge: Flow<Int?> = context.dataStore.data.map { it[Keys.ELDER_AGE] }
 
     // Setters
     suspend fun setHearingAidMode(enabled: Boolean) {
@@ -118,5 +124,14 @@ class PreferencesManager(private val context: Context) {
 
     suspend fun setPharmacyAddress(address: String) {
         context.dataStore.edit { it[Keys.PHARMACY_ADDRESS] = address }
+    }
+
+    // Guardian Integration - Elder Profile Setters
+    suspend fun setElderName(name: String) {
+        context.dataStore.edit { it[Keys.ELDER_NAME] = name }
+    }
+
+    suspend fun setElderAge(age: Int) {
+        context.dataStore.edit { it[Keys.ELDER_AGE] = age }
     }
 }

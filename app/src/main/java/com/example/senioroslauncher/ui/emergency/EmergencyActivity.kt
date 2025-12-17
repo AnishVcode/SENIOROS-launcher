@@ -39,6 +39,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.senioroslauncher.SeniorLauncherApp
 import com.example.senioroslauncher.data.database.entity.EmergencyContactEntity
+import com.example.senioroslauncher.data.guardian.AlertManager
 import com.example.senioroslauncher.ui.components.LargeActionButton
 import com.example.senioroslauncher.ui.components.SeniorTopAppBar
 import com.example.senioroslauncher.ui.theme.*
@@ -567,9 +568,19 @@ private fun sendSMS(context: Context, number: String) {
 }
 
 private fun triggerEmergency(context: Context, contacts: List<EmergencyContactEntity>) {
+    // Get location if available
+    val location = getLocation(context)
+
+    // Trigger Guardian alert (SOS)
+    AlertManager.triggerSOSAlert(
+        context = context,
+        latitude = location?.latitude,
+        longitude = location?.longitude
+    )
+
     if (contacts.isEmpty()) return
 
-    // Get location if available
+    // Get location text for SMS
     val locationText = getLocationText(context)
 
     // Send SMS to all contacts
@@ -593,20 +604,29 @@ private fun triggerEmergency(context: Context, contacts: List<EmergencyContactEn
     }
 }
 
-private fun getLocationText(context: Context): String {
+private fun getLocation(context: Context): Location? {
     return try {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                 ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-
-            if (location != null) {
-                "My location: https://maps.google.com/?q=${location.latitude},${location.longitude}"
-            } else {
-                "Location unavailable"
-            }
         } else {
+            null
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
+
+private fun getLocationText(context: Context): String {
+    return try {
+        val location = getLocation(context)
+        if (location != null) {
+            "My location: https://maps.google.com/?q=${location.latitude},${location.longitude}"
+        } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             "Location permission not granted"
+        } else {
+            "Location unavailable"
         }
     } catch (e: Exception) {
         "Location unavailable"
