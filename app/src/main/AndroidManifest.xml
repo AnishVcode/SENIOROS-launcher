@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Communication Permissions -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -10,24 +9,24 @@
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
 
-    <!-- Location Permissions -->
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
-    <!-- Hardware Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.BODY_SENSORS" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
-    <!-- System Permissions -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
@@ -36,26 +35,22 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
-    <!-- Bluetooth Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
-    <!-- Storage Permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
-    <!-- Alarm Permissions -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
-    <!-- Phone State -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-    <!-- Internet for potential future features -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -66,6 +61,37 @@
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.WEB_SEARCH" />
+        </intent>
+
+        <package android:name="com.whatsapp" />
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.google.android.youtube" />
+        <package android:name="com.google.android.apps.maps" />
+        <package android:name="com.google.android.gm" />
+        <package android:name="com.instagram.android" />
+        <package android:name="com.android.chrome" />
+        <package android:name="com.twitter.android" />
+        <package android:name="org.telegram.messenger" />
+
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+    </queries>
 
     <application
         android:name=".SeniorLauncherApp"
@@ -80,7 +106,6 @@
         android:theme="@style/Theme.Senioroslauncher"
         tools:targetApi="34">
 
-        <!-- Main Activity - Home Screen / Launcher -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -98,7 +123,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Emergency Activity -->
+        <activity
+            android:name=".ui.assistant.VoiceAssistantActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Senioroslauncher" />
+
         <activity
             android:name=".ui.emergency.EmergencyActivity"
             android:exported="false"
@@ -107,13 +137,11 @@
             android:showOnLockScreen="true"
             android:turnScreenOn="true" />
 
-        <!-- Medication Activity -->
         <activity
             android:name=".ui.medication.MedicationActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Medication Reminder Activity (Full Screen Alarm) -->
         <activity
             android:name=".ui.medication.MedicationReminderActivity"
             android:exported="false"
@@ -122,13 +150,11 @@
             android:showOnLockScreen="true"
             android:turnScreenOn="true" />
 
-        <!-- Health Activity -->
         <activity
             android:name=".ui.health.HealthActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Medical Profile Activity -->
         <activity
             android:name=".ui.health.MedicalProfileActivity"
             android:exported="false"
@@ -146,55 +172,46 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Speed Dial Activity -->
         <activity
             android:name=".ui.contacts.SpeedDialActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Messages Activity -->
         <activity
             android:name=".ui.messages.MessagesActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Notes Activity -->
         <activity
             android:name=".ui.notes.NotesActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Calendar Activity -->
         <activity
             android:name=".ui.calendar.CalendarActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- All Apps Activity -->
         <activity
             android:name=".ui.apps.AllAppsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Video Contacts Activity -->
         <activity
             android:name=".ui.video.VideoContactsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Ride Booking Activity -->
         <activity
             android:name=".ui.ride.RideBookingActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Settings Activity -->
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Help Activity -->
         <activity
             android:name=".ui.help.HelpActivity"
             android:exported="false"
