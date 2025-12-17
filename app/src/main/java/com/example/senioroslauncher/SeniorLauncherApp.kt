@@ -3,16 +3,41 @@ package com.example.senioroslauncher
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import android.os.Build
 import com.example.senioroslauncher.data.database.AppDatabase
+import com.example.senioroslauncher.data.guardian.ElderIdentity
+import com.example.senioroslauncher.services.GuardianMonitoringService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class SeniorLauncherApp : Application() {
 
     val database: AppDatabase by lazy { AppDatabase.getDatabase(this) }
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
+
+        // Initialize Elder Identity (generates ID if not exists)
+        ElderIdentity.getOrCreateElderId(this)
+
+        // Start Guardian Monitoring Service if there are paired guardians
+        startGuardianServiceIfNeeded()
+    }
+
+    private fun startGuardianServiceIfNeeded() {
+        applicationScope.launch {
+            val guardianCount = database.pairedGuardianDao().getGuardianCountSync()
+            if (guardianCount > 0) {
+                val serviceIntent = Intent(this@SeniorLauncherApp, GuardianMonitoringService::class.java)
+                serviceIntent.action = GuardianMonitoringService.ACTION_START
+                startForegroundService(serviceIntent)
+            }
+        }
     }
 
     private fun createNotificationChannels() {
@@ -93,6 +118,16 @@ class SeniorLauncherApp : Application() {
                 setShowBadge(false)
             }
 
+            // Guardian Channel - For Guardian integration alerts
+            val guardianChannel = NotificationChannel(
+                CHANNEL_GUARDIAN,
+                "Guardian Connection",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Guardian app connection status"
+                setShowBadge(false)
+            }
+
             notificationManager.createNotificationChannels(
                 listOf(
                     medicationChannel,
@@ -101,7 +136,8 @@ class SeniorLauncherApp : Application() {
                     hydrationChannel,
                     appointmentsChannel,
                     generalChannel,
-                    serviceChannel
+                    serviceChannel,
+                    guardianChannel
                 )
             )
         }
@@ -115,5 +151,6 @@ class SeniorLauncherApp : Application() {
         const val CHANNEL_APPOINTMENTS = "appointments_channel"
         const val CHANNEL_GENERAL = "general_channel"
         const val CHANNEL_SERVICE = "service_channel"
+        const val CHANNEL_GUARDIAN = "guardian_channel"
     }
 }

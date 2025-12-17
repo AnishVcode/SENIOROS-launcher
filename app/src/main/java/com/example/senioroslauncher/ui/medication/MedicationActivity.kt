@@ -1,5 +1,6 @@
 package com.example.senioroslauncher.ui.medication
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,20 +16,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.senioroslauncher.R
 import com.example.senioroslauncher.SeniorLauncherApp
 import com.example.senioroslauncher.data.database.entity.MedicationEntity
 import com.example.senioroslauncher.data.database.entity.MedicationFrequency
 import com.example.senioroslauncher.data.database.entity.MedicationScheduleEntity
+import com.example.senioroslauncher.data.guardian.MedicationNotifier
 import com.example.senioroslauncher.ui.components.LargeActionButton
 import com.example.senioroslauncher.ui.components.SeniorTopAppBar
 import com.example.senioroslauncher.ui.theme.*
+import com.example.senioroslauncher.util.LocaleHelper
 import kotlinx.coroutines.launch
 import java.util.Date
 
 class MedicationActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        val languageCode = LocaleHelper.getLanguageCode(newBase)
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase, languageCode))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -97,6 +107,8 @@ fun MedicationScreen(onBackClick: () -> Unit) {
                         onDeleteClick = {
                             scope.launch {
                                 app.database.medicationDao().delete(medication)
+                                // Notify guardians
+                                MedicationNotifier.notifyMedicationDeleted(context, medication)
                             }
                         }
                     )
@@ -115,7 +127,8 @@ fun MedicationScreen(onBackClick: () -> Unit) {
             },
             onSave = { name, dosage, frequency, notes, times ->
                 scope.launch {
-                    val medicationId = if (editingMedication != null) {
+                    val isUpdate = editingMedication != null
+                    val medicationId = if (isUpdate) {
                         app.database.medicationDao().update(
                             editingMedication!!.copy(
                                 name = name,
@@ -147,6 +160,16 @@ fun MedicationScreen(onBackClick: () -> Unit) {
                                 minute = minute
                             )
                         )
+                    }
+
+                    // Get the saved medication to notify guardians
+                    val savedMedication = app.database.medicationDao().getMedicationByIdSync(medicationId)
+                    if (savedMedication != null) {
+                        if (isUpdate) {
+                            MedicationNotifier.notifyMedicationUpdated(context, savedMedication)
+                        } else {
+                            MedicationNotifier.notifyMedicationAdded(context, savedMedication)
+                        }
                     }
                 }
                 showAddDialog = false

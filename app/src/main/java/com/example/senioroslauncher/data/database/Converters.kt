@@ -1,6 +1,7 @@
 package com.example.senioroslauncher.data.database
 
 import androidx.room.TypeConverter
+import com.example.senioroslauncher.data.database.entity.AlertType
 import com.example.senioroslauncher.data.database.entity.MedicationAction
 import com.example.senioroslauncher.data.database.entity.MedicationFrequency
 import com.google.gson.Gson
@@ -62,5 +63,15 @@ class Converters {
     @TypeConverter
     fun toMedicationAction(value: String): MedicationAction {
         return MedicationAction.valueOf(value)
+    }
+
+    @TypeConverter
+    fun fromAlertType(type: AlertType): String {
+        return type.name
+    }
+
+    @TypeConverter
+    fun toAlertType(value: String): AlertType {
+        return AlertType.valueOf(value)
     }
 }

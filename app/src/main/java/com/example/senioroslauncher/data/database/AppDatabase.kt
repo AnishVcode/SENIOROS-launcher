@@ -18,9 +18,13 @@ import com.example.senioroslauncher.data.database.entity.*
         NoteEntity::class,
         SpeedDialContactEntity::class,
         MedicalProfileEntity::class,
-        HydrationLogEntity::class
+        HydrationLogEntity::class,
+        // Guardian Integration entities
+        AlertEntity::class,
+        HealthCheckInEntity::class,
+        PairedGuardianEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -35,6 +39,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun speedDialContactDao(): SpeedDialContactDao
     abstract fun medicalProfileDao(): MedicalProfileDao
     abstract fun hydrationLogDao(): HydrationLogDao
+    // Guardian Integration DAOs
+    abstract fun alertDao(): AlertDao
+    abstract fun healthCheckInDao(): HealthCheckInDao
+    abstract fun pairedGuardianDao(): PairedGuardianDao
 
     companion object {
         @Volatile

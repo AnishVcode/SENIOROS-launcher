@@ -40,6 +40,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,12 +64,18 @@ import com.example.senioroslauncher.ui.ride.RideBookingActivity
 import com.example.senioroslauncher.ui.settings.SettingsActivity
 import com.example.senioroslauncher.ui.theme.*
 import com.example.senioroslauncher.ui.video.VideoContactsActivity
+import com.example.senioroslauncher.util.LocaleHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val languageCode = LocaleHelper.getLanguageCode(newBase)
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase, languageCode))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +88,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         // Do nothing - this is a launcher, back should not exit
     }
@@ -186,10 +194,10 @@ fun HomeScreen() {
 private fun GreetingSection(currentTime: Calendar) {
     val hour = currentTime.get(Calendar.HOUR_OF_DAY)
     val greeting = when (hour) {
-        in 5..11 -> "Good Morning"
-        in 12..16 -> "Good Afternoon"
-        in 17..20 -> "Good Evening"
-        else -> "Good Night"
+        in 5..11 -> stringResource(R.string.good_morning)
+        in 12..16 -> stringResource(R.string.good_afternoon)
+        in 17..20 -> stringResource(R.string.good_evening)
+        else -> stringResource(R.string.good_night)
     }
 
     val timeFormat = SimpleDateFormat("h:mm", Locale.getDefault())
@@ -246,7 +254,7 @@ private fun QuickSettingsPanel() {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Quick Settings",
+                text = stringResource(R.string.quick_settings),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -257,7 +265,7 @@ private fun QuickSettingsPanel() {
             ) {
                 QuickSettingButton(
                     icon = if (wifiEnabled) Icons.Default.Wifi else Icons.Default.WifiOff,
-                    label = "WiFi",
+                    label = stringResource(R.string.wifi),
                     isActive = wifiEnabled,
                     onClick = {
                         // Open WiFi settings
@@ -266,7 +274,7 @@ private fun QuickSettingsPanel() {
                 )
                 QuickSettingButton(
                     icon = if (bluetoothEnabled) Icons.Default.Bluetooth else Icons.Default.BluetoothDisabled,
-                    label = "Bluetooth",
+                    label = stringResource(R.string.bluetooth),
                     isActive = bluetoothEnabled,
                     onClick = {
                         // Open Bluetooth settings
@@ -275,13 +283,16 @@ private fun QuickSettingsPanel() {
                 )
                 QuickSettingButton(
                     icon = if (flashlightOn) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff,
-                    label = "Torch",
+                    label = stringResource(R.string.torch),
                     isActive = flashlightOn,
                     onClick = {
                         flashlightOn = !flashlightOn
                         toggleFlashlight(context, flashlightOn)
                     }
                 )
+                val soundLabel = stringResource(R.string.sound)
+                val vibrateLabel = stringResource(R.string.vibrate)
+                val silentLabel = stringResource(R.string.silent)
                 QuickSettingButton(
                     icon = when (ringerMode) {
                         AudioManager.RINGER_MODE_NORMAL -> Icons.Default.VolumeUp
@@ -289,9 +300,9 @@ private fun QuickSettingsPanel() {
                         else -> Icons.Default.VolumeOff
                     },
                     label = when (ringerMode) {
-                        AudioManager.RINGER_MODE_NORMAL -> "Sound"
-                        AudioManager.RINGER_MODE_VIBRATE -> "Vibrate"
-                        else -> "Silent"
+                        AudioManager.RINGER_MODE_NORMAL -> soundLabel
+                        AudioManager.RINGER_MODE_VIBRATE -> vibrateLabel
+                        else -> silentLabel
                     },
                     isActive = ringerMode == AudioManager.RINGER_MODE_NORMAL,
                     onClick = {
@@ -321,12 +332,12 @@ private fun SpeedDialSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Speed Dial",
+                    text = stringResource(R.string.speed_dial),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 TextButton(onClick = onAddClick) {
-                    Text("Manage", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.manage), style = MaterialTheme.typography.labelLarge)
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -354,7 +365,7 @@ private fun SpeedDialSection(
 
 data class AppItem(
     val icon: ImageVector,
-    val label: String,
+    val labelResId: Int,
     val backgroundColor: Color,
     val iconColor: Color,
     val onClick: (Context) -> Unit
@@ -364,43 +375,53 @@ data class AppItem(
 private fun AppGrid(context: Context) {
     val appItems = remember {
         listOf(
-            AppItem(Icons.Default.Phone, "Phone", CardGreen, PhoneGreen) { ctx ->
+            AppItem(Icons.Default.Phone, R.string.phone, CardGreen, PhoneGreen) { ctx ->
                 ctx.startActivity(Intent(Intent.ACTION_DIAL))
             },
-            AppItem(Icons.Default.Message, "Messages", CardBlue, MessageBlue) { ctx ->
+            AppItem(Icons.Default.Message, R.string.messages, CardBlue, MessageBlue) { ctx ->
                 ctx.startActivity(Intent(ctx, MessagesActivity::class.java))
             },
-            AppItem(Icons.Default.CameraAlt, "Camera", CardTeal, CameraGray) { ctx ->
-                ctx.startActivity(Intent(MediaStore.ACTION_IMAGE_CAPTURE))
+            AppItem(Icons.Default.CameraAlt, R.string.camera, CardTeal, CameraGray) { ctx ->
+                // Try to open the default camera app
+                val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
+                if (intent.resolveActivity(ctx.packageManager) != null) {
+                    ctx.startActivity(intent)
+                } else {
+                    // Fallback to any camera app
+                    val fallbackIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                    if (fallbackIntent.resolveActivity(ctx.packageManager) != null) {
+                        ctx.startActivity(fallbackIntent)
+                    }
+                }
             },
-            AppItem(Icons.Default.Contacts, "Contacts", CardPurple, ContactsBlue) { ctx ->
+            AppItem(Icons.Default.Contacts, R.string.contacts, CardPurple, ContactsBlue) { ctx ->
                 ctx.startActivity(Intent(ctx, ContactsActivity::class.java))
             },
-            AppItem(Icons.Default.PhotoLibrary, "Gallery", CardPurple, GalleryPurple) { ctx ->
+            AppItem(Icons.Default.PhotoLibrary, R.string.gallery, CardPurple, GalleryPurple) { ctx ->
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.type = "image/*"
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 ctx.startActivity(intent)
             },
-            AppItem(Icons.Default.Medication, "Medication", CardOrange, MedicationOrange) { ctx ->
+            AppItem(Icons.Default.Medication, R.string.medication, CardOrange, MedicationOrange) { ctx ->
                 ctx.startActivity(Intent(ctx, MedicationActivity::class.java))
             },
-            AppItem(Icons.Default.Favorite, "Health", CardRed, HealthRed) { ctx ->
+            AppItem(Icons.Default.Favorite, R.string.health, CardRed, HealthRed) { ctx ->
                 ctx.startActivity(Intent(ctx, HealthActivity::class.java))
             },
-            AppItem(Icons.Default.CalendarMonth, "Calendar", CardTeal, CalendarTeal) { ctx ->
+            AppItem(Icons.Default.CalendarMonth, R.string.calendar, CardTeal, CalendarTeal) { ctx ->
                 ctx.startActivity(Intent(ctx, CalendarActivity::class.java))
             },
-            AppItem(Icons.Default.VideoCall, "Video Call", CardBlue, VideoCallGreen) { ctx ->
+            AppItem(Icons.Default.VideoCall, R.string.video_call, CardBlue, VideoCallGreen) { ctx ->
                 ctx.startActivity(Intent(ctx, VideoContactsActivity::class.java))
             },
-            AppItem(Icons.Default.DirectionsCar, "Ride", CardYellow, RideYellow) { ctx ->
+            AppItem(Icons.Default.DirectionsCar, R.string.ride, CardYellow, RideYellow) { ctx ->
                 ctx.startActivity(Intent(ctx, RideBookingActivity::class.java))
             },
-            AppItem(Icons.Default.Notes, "Notes", CardYellow, NotesAmber) { ctx ->
+            AppItem(Icons.Default.Notes, R.string.notes, CardYellow, NotesAmber) { ctx ->
                 ctx.startActivity(Intent(ctx, NotesActivity::class.java))
             },
-            AppItem(Icons.Default.Settings, "Settings", LightGray, SettingsGray) { ctx ->
+            AppItem(Icons.Default.Settings, R.string.settings, LightGray, SettingsGray) { ctx ->
                 ctx.startActivity(Intent(ctx, SettingsActivity::class.java))
             }
         )
@@ -408,47 +429,35 @@ private fun AppGrid(context: Context) {
 
     // Add All Apps and Help to the list
     val allAppItems = appItems + listOf(
-        AppItem(Icons.Default.Apps, "All Apps", CardPurple, AppsIndigo) { ctx ->
+        AppItem(Icons.Default.Apps, R.string.all_apps, CardPurple, AppsIndigo) { ctx ->
             ctx.startActivity(Intent(ctx, AllAppsActivity::class.java))
         },
-        AppItem(Icons.Default.Help, "Help", CardBlue, HelpBlue) { ctx ->
+        AppItem(Icons.Default.Help, R.string.help, CardBlue, HelpBlue) { ctx ->
             ctx.startActivity(Intent(ctx, HelpActivity::class.java))
         }
     )
 
     Column {
         Text(
-            text = "Apps",
+            text = stringResource(R.string.apps),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        // 2 columns grid with larger buttons
-        val totalRows = (allAppItems.size + 1) / 2
-        for (row in 0 until totalRows) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                for (col in 0 until 2) {
-                    val index = row * 2 + col
-                    if (index < allAppItems.size) {
-                        val item = allAppItems[index]
-                        LargeAppButton(
-                            icon = item.icon,
-                            label = item.label,
-                            backgroundColor = item.backgroundColor,
-                            iconColor = item.iconColor,
-                            onClick = { item.onClick(context) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
+        // 1 app per row with full-width buttons
+        allAppItems.forEachIndexed { index, item ->
+            FullWidthAppButton(
+                icon = item.icon,
+                label = stringResource(item.labelResId),
+                backgroundColor = item.backgroundColor,
+                iconColor = item.iconColor,
+                onClick = { item.onClick(context) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (index < allAppItems.size - 1) {
+                Spacer(modifier = Modifier.height(12.dp))
             }
-            if (row < totalRows - 1) Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -507,7 +516,7 @@ private fun BottomActionsSection(
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Voice",
+                text = stringResource(R.string.voice),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -552,7 +561,7 @@ private fun BottomActionsSection(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "SOS",
+                            text = stringResource(R.string.sos),
                             style = MaterialTheme.typography.headlineSmall,
                             color = White,
                             fontWeight = FontWeight.Bold
@@ -562,7 +571,7 @@ private fun BottomActionsSection(
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Hold 3 sec",
+                text = stringResource(R.string.hold_3_sec),
                 style = MaterialTheme.typography.labelSmall,
                 color = EmergencyRed
             )
@@ -602,7 +611,7 @@ private fun BottomActionsSection(
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Call",
+                text = stringResource(R.string.call),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )

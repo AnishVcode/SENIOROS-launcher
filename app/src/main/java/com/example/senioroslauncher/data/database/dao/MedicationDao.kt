@@ -15,6 +15,9 @@ interface MedicationDao {
     @Query("SELECT * FROM medications WHERE id = :id")
     suspend fun getMedicationById(id: Long): MedicationEntity?
 
+    @Query("SELECT * FROM medications WHERE id = :id")
+    fun getMedicationByIdSync(id: Long): MedicationEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(medication: MedicationEntity): Long
 
