@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.senioroslauncher.data.database.entity.SpeedDialContactEntity
 import com.example.senioroslauncher.data.preferences.PreferencesManager
 import com.example.senioroslauncher.ui.apps.AllAppsActivity
+import com.example.senioroslauncher.ui.assistant.VoiceAssistantActivity
 import com.example.senioroslauncher.ui.calendar.CalendarActivity
 import com.example.senioroslauncher.ui.components.*
 import com.example.senioroslauncher.ui.contacts.ContactsActivity
@@ -479,13 +480,9 @@ private fun BottomActionsSection(
                             onTap = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 // Launch voice assistant
-                                val intent = Intent(Intent.ACTION_VOICE_COMMAND)
+                                val intent = Intent(context, VoiceAssistantActivity::class.java)
                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                try {
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    // Voice assistant not available
-                                }
+                                context.startActivity(intent)
                             }
                         )
                     },

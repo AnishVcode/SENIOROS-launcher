@@ -38,6 +38,13 @@ android {
     buildFeatures {
         compose = true
     }
+    configurations.all {
+        resolutionStrategy {
+            force("org.tensorflow:tensorflow-lite:2.16.1")
+            force("org.tensorflow:tensorflow-lite-api:2.16.1")
+            force("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
+        }
+    }
 }
 
 dependencies {
@@ -78,6 +85,23 @@ dependencies {
     // Lifecycle
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)
+
+
+    //Voice assistant
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+
+    // ML Kit for Multilingual Translation
+    implementation(libs.mlkit.translate)
+    implementation(libs.mlkit.language.id)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
+
+    // WorkManager
+    implementation(libs.work.runtime.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

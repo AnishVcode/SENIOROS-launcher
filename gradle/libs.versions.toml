@@ -17,6 +17,12 @@ accompanist = "0.34.0"
 coil = "2.5.0"
 material = "1.11.0"
 
+tensorflowLite = "2.16.1"
+mlkit = "17.0.2"
+languageId = "17.0.5"
+coroutines = "1.7.3"
+work = "2.9.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -61,6 +67,23 @@ material = { group = "com.google.android.material", name = "material", version.r
 # Lifecycle
 lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
+
+# Voice Assistant - TensorFlow Lite
+tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
+tensorflow-lite-select-ops = { group = "org.tensorflow", name = "tensorflow-lite-select-tf-ops", version.ref = "tensorflowLite" }
+tensorflow-lite-support = { group = "org.tensorflow", name = "tensorflow-lite-support", version = "0.4.4" }
+
+# Voice Assistant - ML Kit
+mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkit" }
+mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version.ref = "languageId" }
+
+# Coroutines
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+
+# WorkManager
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
