@@ -36,7 +36,14 @@ class WebSocketManager(
     private val onGetAlertHistory: suspend (WebSocketMessage) -> Unit,
     private val onGetHealthHistory: suspend (WebSocketMessage) -> Unit,
     private val onGuardianPaired: suspend (WebSocketMessage) -> Unit,
-    private val onGuardianUnpaired: suspend (WebSocketMessage) -> Unit
+    private val onGuardianUnpaired: suspend (WebSocketMessage) -> Unit,
+    private val onAddMedication: suspend (WebSocketMessage) -> Unit,
+    private val onUpdateMedication: suspend (WebSocketMessage) -> Unit,
+    private val onDeleteMedication: suspend (WebSocketMessage) -> Unit,
+    private val onSendReminder: suspend (WebSocketMessage) -> Unit,
+    private val onSendMessage: suspend (WebSocketMessage) -> Unit,
+    private val onUpdateEmergencyContact: suspend (WebSocketMessage) -> Unit,
+    private val onDeleteEmergencyContact: suspend (WebSocketMessage) -> Unit
 ) {
     companion object {
         private const val TAG = "WebSocketManager"
@@ -205,12 +212,29 @@ class WebSocketManager(
             val message = json.decodeFromString<WebSocketMessage>(jsonMessage)
 
             when (message.type) {
+                // Query requests
                 IncomingMessageTypes.GET_STATE -> onGetState(message)
                 IncomingMessageTypes.GET_MEDICATIONS -> onGetMedications(message)
                 IncomingMessageTypes.GET_ALERT_HISTORY -> onGetAlertHistory(message)
                 IncomingMessageTypes.GET_HEALTH_HISTORY -> onGetHealthHistory(message)
+
+                // Pairing events
                 IncomingMessageTypes.GUARDIAN_PAIRED -> onGuardianPaired(message)
                 IncomingMessageTypes.GUARDIAN_UNPAIRED -> onGuardianUnpaired(message)
+
+                // Medication commands
+                IncomingMessageTypes.ADD_MEDICATION -> onAddMedication(message)
+                IncomingMessageTypes.UPDATE_MEDICATION -> onUpdateMedication(message)
+                IncomingMessageTypes.DELETE_MEDICATION -> onDeleteMedication(message)
+
+                // Notification commands
+                IncomingMessageTypes.SEND_REMINDER -> onSendReminder(message)
+                IncomingMessageTypes.SEND_MESSAGE -> onSendMessage(message)
+
+                // Emergency contact commands
+                IncomingMessageTypes.UPDATE_EMERGENCY_CONTACT -> onUpdateEmergencyContact(message)
+                IncomingMessageTypes.DELETE_EMERGENCY_CONTACT -> onDeleteEmergencyContact(message)
+
                 else -> Log.w(TAG, "Unknown message type: ${message.type}")
             }
         } catch (e: Exception) {

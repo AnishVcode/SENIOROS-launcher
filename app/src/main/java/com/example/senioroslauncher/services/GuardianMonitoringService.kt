@@ -25,6 +25,9 @@ import com.example.senioroslauncher.data.guardian.handlers.GetAlertHistoryHandle
 import com.example.senioroslauncher.data.guardian.handlers.GetHealthHistoryHandler
 import com.example.senioroslauncher.data.guardian.handlers.GetMedicationsHandler
 import com.example.senioroslauncher.data.guardian.handlers.GetStateHandler
+import com.example.senioroslauncher.data.guardian.handlers.MedicationCommandHandler
+import com.example.senioroslauncher.data.guardian.handlers.NotificationCommandHandler
+import com.example.senioroslauncher.data.guardian.handlers.EmergencyContactCommandHandler
 import com.example.senioroslauncher.data.guardian.models.AlertEventPayload
 import com.example.senioroslauncher.data.guardian.models.GuardianPairedPayload
 import com.example.senioroslauncher.data.guardian.models.GuardianUnpairedPayload
@@ -70,6 +73,9 @@ class GuardianMonitoringService : Service() {
     private lateinit var getMedicationsHandler: GetMedicationsHandler
     private lateinit var getAlertHistoryHandler: GetAlertHistoryHandler
     private lateinit var getHealthHistoryHandler: GetHealthHistoryHandler
+    private lateinit var medicationCommandHandler: MedicationCommandHandler
+    private lateinit var notificationCommandHandler: NotificationCommandHandler
+    private lateinit var emergencyContactCommandHandler: EmergencyContactCommandHandler
 
     private var lastLowBatteryAlertTime: Long = 0
 
@@ -111,6 +117,27 @@ class GuardianMonitoringService : Service() {
             },
             onGuardianUnpaired = { message ->
                 handleGuardianUnpaired(message)
+            },
+            onAddMedication = { message ->
+                handleAddMedication(message)
+            },
+            onUpdateMedication = { message ->
+                handleUpdateMedication(message)
+            },
+            onDeleteMedication = { message ->
+                handleDeleteMedication(message)
+            },
+            onSendReminder = { message ->
+                handleSendReminder(message)
+            },
+            onSendMessage = { message ->
+                handleSendMessage(message)
+            },
+            onUpdateEmergencyContact = { message ->
+                handleUpdateEmergencyContact(message)
+            },
+            onDeleteEmergencyContact = { message ->
+                handleDeleteEmergencyContact(message)
             }
         )
     }
@@ -120,6 +147,9 @@ class GuardianMonitoringService : Service() {
         getMedicationsHandler = GetMedicationsHandler(this, webSocketManager, database)
         getAlertHistoryHandler = GetAlertHistoryHandler(this, webSocketManager, database)
         getHealthHistoryHandler = GetHealthHistoryHandler(this, webSocketManager, database)
+        medicationCommandHandler = MedicationCommandHandler(this)
+        notificationCommandHandler = NotificationCommandHandler(this)
+        emergencyContactCommandHandler = EmergencyContactCommandHandler(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -343,4 +373,90 @@ class GuardianMonitoringService : Service() {
      * Get the WebSocket manager for external access.
      */
     fun getWebSocketManager(): WebSocketManager = webSocketManager
+
+    // ============== Command Handlers ==============
+
+    private suspend fun handleAddMedication(message: WebSocketMessage) {
+        serviceScope.launch {
+            try {
+                val response = medicationCommandHandler.handleAddMedication(message)
+                webSocketManager.sendMessage(response)
+                Log.d(TAG, "Add medication command handled")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling add medication", e)
+            }
+        }
+    }
+
+    private suspend fun handleUpdateMedication(message: WebSocketMessage) {
+        serviceScope.launch {
+            try {
+                val response = medicationCommandHandler.handleUpdateMedication(message)
+                webSocketManager.sendMessage(response)
+                Log.d(TAG, "Update medication command handled")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling update medication", e)
+            }
+        }
+    }
+
+    private suspend fun handleDeleteMedication(message: WebSocketMessage) {
+        serviceScope.launch {
+            try {
+                val response = medicationCommandHandler.handleDeleteMedication(message)
+                webSocketManager.sendMessage(response)
+                Log.d(TAG, "Delete medication command handled")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling delete medication", e)
+            }
+        }
+    }
+
+    private suspend fun handleSendReminder(message: WebSocketMessage) {
+        serviceScope.launch {
+            try {
+                val response = notificationCommandHandler.handleSendReminder(message)
+                webSocketManager.sendMessage(response)
+                Log.d(TAG, "Send reminder command handled")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling send reminder", e)
+            }
+        }
+    }
+
+    private suspend fun handleSendMessage(message: WebSocketMessage) {
+        serviceScope.launch {
+            try {
+                val response = notificationCommandHandler.handleSendMessage(message)
+                webSocketManager.sendMessage(response)
+                Log.d(TAG, "Send message command handled")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling send message", e)
+            }
+        }
+    }
+
+    private suspend fun handleUpdateEmergencyContact(message: WebSocketMessage) {
+        serviceScope.launch {
+            try {
+                val response = emergencyContactCommandHandler.handleUpdateEmergencyContact(message)
+                webSocketManager.sendMessage(response)
+                Log.d(TAG, "Update emergency contact command handled")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling update emergency contact", e)
+            }
+        }
+    }
+
+    private suspend fun handleDeleteEmergencyContact(message: WebSocketMessage) {
+        serviceScope.launch {
+            try {
+                val response = emergencyContactCommandHandler.handleDeleteEmergencyContact(message)
+                webSocketManager.sendMessage(response)
+                Log.d(TAG, "Delete emergency contact command handled")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling delete emergency contact", e)
+            }
+        }
+    }
 }

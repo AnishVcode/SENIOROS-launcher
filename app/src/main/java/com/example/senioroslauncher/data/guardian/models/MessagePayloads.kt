@@ -150,3 +150,79 @@ data class GuardianPairedPayload(
 data class GuardianUnpairedPayload(
     val guardianId: String
 )
+
+// ============== Guardian Commands - Medication Management ==============
+
+@Serializable
+data class AddMedicationPayload(
+    val name: String,
+    val dosage: String,
+    val instructions: String,
+    val schedules: List<MedicationSchedulePayload>
+)
+
+@Serializable
+data class MedicationSchedulePayload(
+    val time: String,  // "HH:mm" format
+    val daysOfWeek: List<Int>,  // 0-6 (Sunday=0)
+    val enabled: Boolean = true
+)
+
+@Serializable
+data class UpdateMedicationPayload(
+    val medicationId: String,
+    val name: String? = null,
+    val dosage: String? = null,
+    val instructions: String? = null,
+    val schedules: List<MedicationSchedulePayload>? = null
+)
+
+@Serializable
+data class DeleteMedicationPayload(
+    val medicationId: String
+)
+
+// ============== Guardian Commands - Notifications ==============
+
+@Serializable
+data class SendReminderPayload(
+    val title: String,
+    val message: String,
+    val priority: String = "normal"  // "low", "normal", "high", "urgent"
+)
+
+@Serializable
+data class SendMessagePayload(
+    val guardianName: String,
+    val message: String,
+    val requiresAcknowledgment: Boolean = false
+)
+
+// ============== Guardian Commands - Emergency Contacts ==============
+
+@Serializable
+data class UpdateEmergencyContactPayload(
+    val contactId: String? = null,  // null for new contact
+    val name: String,
+    val phoneNumber: String,
+    val relationship: String
+)
+
+@Serializable
+data class DeleteEmergencyContactPayload(
+    val contactId: String
+)
+
+// ============== Command Response Payloads ==============
+
+@Serializable
+data class CommandSuccessPayload(
+    val message: String,
+    val data: Map<String, String>? = null  // Optional data (e.g., new medication ID)
+)
+
+@Serializable
+data class CommandErrorPayload(
+    val error: String,
+    val details: String? = null
+)

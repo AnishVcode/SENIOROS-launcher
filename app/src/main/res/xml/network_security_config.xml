@@ -3,8 +3,10 @@
     <!-- Allow cleartext traffic for development/testing -->
     <!-- In production, use HTTPS and remove this config -->
     <domain-config cleartextTrafficPermitted="true">
-        <!-- Relay server IP -->
-        <domain includeSubdomains="true">192.168.137.150</domain>
+        <!-- Relay server IPs -->
+        <domain includeSubdomains="true">172.20.10.2</domain>
+        <domain includeSubdomains="true">172.20.10.5</domain>
+        <domain includeSubdomains="true">192.168.137.26</domain>
         <!-- Android emulator localhost -->
         <domain includeSubdomains="true">10.0.2.2</domain>
         <!-- Localhost for debugging -->
