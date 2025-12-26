@@ -20,7 +20,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Guardian Integration Server Configuration
-        buildConfigField("String", "GUARDIAN_SERVER_IP", "\"192.168.137.150\"")
+        buildConfigField("String", "GUARDIAN_SERVER_IP", "\"ur ip here\"")
         buildConfigField("int", "GUARDIAN_SERVER_PORT", "3000")
     }
 

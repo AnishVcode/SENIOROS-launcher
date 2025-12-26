@@ -281,6 +281,14 @@
             android:name=".receivers.AlarmReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".services.FallDetectionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.senioroslauncher.IM_OK" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +27,7 @@ import com.example.senioroslauncher.data.database.entity.MedicationEntity
 import com.example.senioroslauncher.data.database.entity.MedicationFrequency
 import com.example.senioroslauncher.data.database.entity.MedicationScheduleEntity
 import com.example.senioroslauncher.data.guardian.MedicationNotifier
+import com.example.senioroslauncher.services.MedicationReminderService
 import com.example.senioroslauncher.ui.components.LargeActionButton
 import com.example.senioroslauncher.ui.components.SeniorTopAppBar
 import com.example.senioroslauncher.ui.theme.*
@@ -161,6 +163,9 @@ fun MedicationScreen(onBackClick: () -> Unit) {
                             )
                         )
                     }
+
+                    // Schedule alarms for this medication
+                    MedicationReminderService.scheduleMedicationReminders(context, medicationId)
 
                     // Get the saved medication to notify guardians
                     val savedMedication = app.database.medicationDao().getMedicationByIdSync(medicationId)
@@ -325,6 +330,9 @@ private fun AddMedicationDialog(
     onDismiss: () -> Unit,
     onSave: (String, String, MedicationFrequency, String, List<Pair<Int, Int>>) -> Unit
 ) {
+    val context = LocalContext.current
+    val app = context.applicationContext as SeniorLauncherApp
+
     var name by remember { mutableStateOf(medication?.name ?: "") }
     var dosage by remember { mutableStateOf(medication?.dosage ?: "") }
     var frequency by remember { mutableStateOf(medication?.frequency ?: MedicationFrequency.DAILY) }
@@ -332,6 +340,16 @@ private fun AddMedicationDialog(
     var times by remember { mutableStateOf(listOf(Pair(8, 0))) }
     var showTimePicker by remember { mutableStateOf(false) }
     var editingTimeIndex by remember { mutableIntStateOf(-1) }
+
+    // Load existing schedules when editing
+    LaunchedEffect(medication?.id) {
+        medication?.let { med ->
+            val schedules = app.database.medicationScheduleDao().getSchedulesForMedicationSync(med.id)
+            if (schedules.isNotEmpty()) {
+                times = schedules.map { Pair(it.hour, it.minute) }
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,

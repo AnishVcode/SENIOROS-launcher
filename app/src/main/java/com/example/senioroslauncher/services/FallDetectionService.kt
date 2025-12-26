@@ -15,6 +15,7 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.senioroslauncher.R
 import com.example.senioroslauncher.SeniorLauncherApp
@@ -23,6 +24,13 @@ import com.example.senioroslauncher.ui.emergency.EmergencyActivity
 import kotlin.math.sqrt
 
 class FallDetectionService : Service(), SensorEventListener {
+
+    companion object {
+        private const val TAG = "FallDetectionService"
+        private const val NOTIFICATION_ID = 1001
+        private const val FALL_NOTIFICATION_ID = 1002
+        const val ACTION_IM_OK = "com.example.senioroslauncher.IM_OK"
+    }
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
@@ -33,17 +41,23 @@ class FallDetectionService : Service(), SensorEventListener {
     private var lastZ = 0f
 
     // Fall detection parameters
-    private val FALL_THRESHOLD = 2.0f  // Free fall threshold (g)
-    private val IMPACT_THRESHOLD = 35.0f  // Impact threshold (g)
-    private val FALL_WINDOW = 300L  // Time window for fall detection (ms)
+    private val FALL_THRESHOLD = 0.5f  // Free fall threshold (g) - lowered for better detection
+    private val IMPACT_THRESHOLD = 2.5f  // Impact threshold (g) - more realistic for phone drops
+    private val FALL_WINDOW = 500L  // Time window for fall detection (ms) - increased window
 
     private var potentialFallTime: Long = 0
     private var inFreeFall = false
 
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "FallDetectionService onCreate()")
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        if (accelerometer == null) {
+            Log.e(TAG, "No accelerometer sensor available!")
+        } else {
+            Log.d(TAG, "Accelerometer sensor found: ${accelerometer?.name}")
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -61,12 +75,13 @@ class FallDetectionService : Service(), SensorEventListener {
 
     private fun startAccelerometerMonitoring() {
         accelerometer?.let {
-            sensorManager.registerListener(
+            val success = sensorManager.registerListener(
                 this,
                 it,
                 SensorManager.SENSOR_DELAY_GAME
             )
-        }
+            Log.d(TAG, "Accelerometer monitoring started: $success")
+        } ?: Log.e(TAG, "Cannot start monitoring - no accelerometer")
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -86,13 +101,16 @@ class FallDetectionService : Service(), SensorEventListener {
         if (acceleration < FALL_THRESHOLD && !inFreeFall) {
             inFreeFall = true
             potentialFallTime = curTime
+            Log.d(TAG, "Free fall detected! acceleration=$acceleration")
         }
 
         // Impact detection after free fall
         if (inFreeFall && acceleration > IMPACT_THRESHOLD) {
             val timeSinceFreeFall = curTime - potentialFallTime
+            Log.d(TAG, "Impact detected! acceleration=$acceleration, timeSinceFreeFall=$timeSinceFreeFall ms")
             if (timeSinceFreeFall < FALL_WINDOW) {
                 // Fall detected!
+                Log.w(TAG, "FALL DETECTED! Triggering emergency alert")
                 onFallDetected()
             }
             inFreeFall = false
@@ -100,6 +118,7 @@ class FallDetectionService : Service(), SensorEventListener {
 
         // Reset free fall state after window expires
         if (inFreeFall && (curTime - potentialFallTime) > FALL_WINDOW) {
+            Log.d(TAG, "Free fall window expired without impact")
             inFreeFall = false
         }
 
@@ -109,9 +128,9 @@ class FallDetectionService : Service(), SensorEventListener {
         val deltaZ = z - lastZ
         val deltaAccel = sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) / SensorManager.GRAVITY_EARTH
 
-        if (deltaAccel > 25) {
-            // Possible fall from sudden movement
-            onPossibleFall()
+        if (deltaAccel > 3.0) {
+            // Possible fall from sudden movement - lowered threshold for better detection
+            Log.d(TAG, "Sudden movement detected: deltaAccel=$deltaAccel")
         }
 
         lastX = x
@@ -125,14 +144,19 @@ class FallDetectionService : Service(), SensorEventListener {
     }
 
     private fun onFallDetected() {
+        Log.w(TAG, "onFallDetected() - Processing fall event")
+
         // Vibrate to alert user
         vibrate()
+        Log.d(TAG, "Vibration triggered")
 
         // Show notification
         showFallNotification()
+        Log.d(TAG, "Fall notification shown")
 
         // Trigger Guardian alert
         AlertManager.triggerFallAlert(this)
+        Log.d(TAG, "Guardian alert triggered")
 
         // Launch emergency activity
         val intent = Intent(this, EmergencyActivity::class.java).apply {
@@ -140,11 +164,7 @@ class FallDetectionService : Service(), SensorEventListener {
             putExtra("fall_detected", true)
         }
         startActivity(intent)
-    }
-
-    private fun onPossibleFall() {
-        // Less aggressive - just vibrate
-        vibrate()
+        Log.d(TAG, "Emergency activity launched")
     }
 
     private fun vibrate() {
@@ -215,12 +235,6 @@ class FallDetectionService : Service(), SensorEventListener {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
-    }
-
-    companion object {
-        private const val NOTIFICATION_ID = 1001
-        private const val FALL_NOTIFICATION_ID = 1002
-        const val ACTION_IM_OK = "com.example.senioroslauncher.IM_OK"
     }
 }
 
